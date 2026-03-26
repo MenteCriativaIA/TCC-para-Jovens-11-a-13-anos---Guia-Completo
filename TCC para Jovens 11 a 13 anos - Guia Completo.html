@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seu Manual do Cérebro - Guia de Terapia</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Google Fonts: Nunito for a friendly, approachable look -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Chosen Palette: Warm Neutrals with Playful Accents (Teal, Coral, Mustard) for a welcoming, non-clinical feel -->
+    <!-- Application Structure Plan: 
+         1. Hero/Intro: Welcoming vibe, setting the "exploration" metaphor.
+         2. Section 'O que é Psicologia': Interactive GPS metaphor.
+         3. Section 'O Copiloto': Explaining the psychologist's role and confidentiality via interactive cards.
+         4. Section 'O Motor da Mente (TCC)': The core 3 pillars. Uses an interactive HTML/CSS node system to show the Thought->Feeling->Behavior loop with a relatable school example.
+         5. Section 'Superpoderes (Ferramentas)': Explains interventions. Includes a dynamic Chart.js "Emotion Dashboard" to visually show how changing thoughts changes emotion levels over time.
+         6. Section 'Missões da Sessão': The 3 requested practical activities.
+         WHY: This structure moves from the abstract (what is this place?) to the concrete (how does my brain work?), then to tools (what do we do about it?), ending with action items, matching the logic of introducing a teen to therapy. 
+    -->
+    <!-- Visualization & Content Choices: 
+         - Concept: Psychology as a GPS -> Method: Interactive CSS toggle -> Justification: Relatable tech metaphor for navigation.
+         - Concept: The CBT Triangle (Thoughts, Feelings, Behaviors) -> Method: Interactive CSS Grid layout with clickable circular nodes updating a central story box -> Justification: Breaks down the core concept of CBT visually and interactively without using complex/banned SVG graphics. Allows step-by-step understanding of the loop.
+         - Concept: Emotional Regulation over time -> Method: Chart.js Line Chart -> Justification: Demonstrates cause and effect visually. Kids understand "health bars" or "levels" from games; the chart acts as an emotional level tracker that responds to simulated "thoughts".
+         - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. All graphics are DOM elements styled with Tailwind or Canvas for charts.
+    -->
+
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #FDFBF7; /* Very warm, soft off-white/beige */
+            color: #334155;
+        }
+
+        /* Strict Chart Container Styling */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        /* Custom UI Elements (No SVG) */
+        .node-circle {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .node-circle:hover, .node-circle.active {
+            transform: scale(1.05) translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Pulse animation for the GPS metaphor */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 15px rgba(20, 184, 166, 0); }
+            100% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(20, 184, 166, 0); }
+        }
+        .gps-pulse {
+            animation: pulse-ring 2s infinite;
+        }
+
+        /* CSS Flip Card */
+        .perspective-1000 { perspective: 1000px; }
+        .transform-style-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+        .group:hover .group-hover\:rotate-y-180 { transform: rotateY(180deg); }
+    </style>
+</head>
+<body class="antialiased selection:bg-teal-200 selection:text-teal-900">
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-[#FDFBF7]/90 backdrop-blur-md border-b border-gray-200">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex-shrink-0 font-extrabold text-2xl text-teal-600 tracking-tight">
+                    🧠 Manual da Mente
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="#o-que-e" class="text-gray-600 hover:text-teal-600 font-semibold transition-colors">O que é?</a>
+                    <a href="#o-copiloto" class="text-gray-600 hover:text-teal-600 font-semibold transition-colors">O Copiloto</a>
+                    <a href="#engrenagens" class="text-gray-600 hover:text-teal-600 font-semibold transition-colors">Como Funciona</a>
+                    <a href="#superpoderes" class="text-gray-600 hover:text-teal-600 font-semibold transition-colors">Superpoderes</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+        <!-- Header / Hero -->
+        <header class="text-center py-16 bg-white rounded-3xl shadow-sm border border-gray-100 mb-16 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-teal-400 via-yellow-400 to-rose-400"></div>
+            <h1 class="text-4xl md:text-5xl font-extrabold text-slate-800 mb-4">Bem-vindo(a) à sua <span class="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 to-blue-600">Missão Interna</span></h1>
+            <p class="text-lg md:text-xl text-slate-500 max-w-2xl mx-auto">
+                Já sentiu que seu cérebro às vezes parece ter vida própria? A gente está aqui para desvendar como essa máquina incrível funciona. Preparado para explorar?
+            </p>
+        </header>
+
+        <!-- Section 1: O que é a Psicologia? -->
+        <section id="o-que-e" class="mb-20 scroll-mt-20">
+            <div class="bg-teal-50 rounded-3xl p-8 md:p-12 border border-teal-100 flex flex-col md:flex-row items-center gap-10">
+                <div class="w-full md:w-1/2">
+                    <h2 class="text-3xl font-bold text-teal-800 mb-4">O que é a Psicologia? (Não é coisa de maluco!)</h2>
+                    <p class="text-slate-700 mb-4 text-lg">
+                        Muita gente acha que ir ao psicólogo é só para quem "pirou". <strong>Mentira!</strong>
+                    </p>
+                    <p class="text-slate-700 mb-6 text-lg">
+                        Imagine que você vai fazer uma trilha numa floresta que você não conhece. A Psicologia é como um <strong>GPS super avançado</strong> ou uma <strong>lanterna potente</strong>. Ela não caminha por você, mas ilumina os caminhos escuros da sua mente, ajuda a ler o mapa das suas emoções e a entender como você funciona por dentro.
+                    </p>
+                    <button id="btn-gps" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-6 rounded-full transition-transform transform hover:scale-105 active:scale-95 flex items-center gap-2">
+                        <span>Ligar o GPS da Mente</span>
+                        <span id="gps-status" class="w-3 h-3 rounded-full bg-red-400 ml-2"></span>
+                    </button>
+                </div>
+                <div class="w-full md:w-1/2 flex justify-center relative">
+                    <!-- Pure CSS/HTML visual metaphor for GPS/Map -->
+                    <div id="map-visual" class="w-64 h-64 bg-slate-200 rounded-full relative overflow-hidden border-4 border-white shadow-xl transition-all duration-500">
+                        <div class="absolute inset-0 bg-grid-slate-300/[0.2] bg-[length:20px_20px]"></div>
+                        <div id="gps-marker" class="absolute top-1/2 left-1/2 w-6 h-6 bg-teal-500 rounded-full transform -translate-x-1/2 -translate-y-1/2 opacity-50 transition-all duration-500"></div>
+                        <div id="gps-text" class="absolute bottom-6 w-full text-center text-sm font-bold text-slate-500 opacity-0 transition-opacity duration-300">Sinal Encontrado. Explorando...</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: O Psicólogo -->
+        <section id="o-copiloto" class="mb-20 scroll-mt-20">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-bold text-slate-800">O que o Psicólogo faz?</h2>
+                <p class="text-slate-500 mt-2">Conheça o seu parceiro de missão.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Card 1 -->
+                <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-3xl mb-6 font-bold">🎮</div>
+                    <h3 class="text-2xl font-bold text-slate-800 mb-3">Seu Copiloto / Treinador</h3>
+                    <p class="text-slate-600 leading-relaxed">
+                        Pense num videogame difícil. O psicólogo não é o jogador (quem joga é você!), ele é aquele amigo que já leu o detonado, que fica do seu lado dizendo: <em>"Cuidado com aquele obstáculo", "Tenta usar esse combo agora"</em>. Ele treina sua mente para lidar com os desafios.
+                    </p>
+                </div>
+
+                <!-- Card 2 (Interactive Confidentiality) -->
+                <div class="bg-slate-800 p-8 rounded-3xl shadow-lg relative overflow-hidden group">
+                    <div class="absolute -right-10 -top-10 w-40 h-40 bg-slate-700 rounded-full opacity-50 transition-transform group-hover:scale-150"></div>
+                    <div class="relative z-10">
+                        <div class="w-16 h-16 bg-slate-700 text-yellow-400 rounded-2xl flex items-center justify-center text-3xl mb-6 font-bold shadow-inner">🔒</div>
+                        <h3 class="text-2xl font-bold text-white mb-3">A Regra de Ouro: Sigilo</h3>
+                        <p class="text-slate-300 mb-4">
+                            Este é um espaço seguro e <strong>sem julgamentos</strong>. O que falamos aqui, fica aqui. É confidencial.
+                        </p>
+                        <div class="bg-slate-700 rounded-xl p-4 text-sm text-slate-200 border-l-4 border-yellow-500">
+                            <strong>A única exceção:</strong> Só contamos para um adulto se percebermos que você, ou outra pessoa, corre algum perigo real. Nosso objetivo número 1 é te manter seguro.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: A TCC (O Modelo) -->
+        <section id="engrenagens" class="mb-20 scroll-mt-20">
+            <div class="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-gray-200">
+                <div class="text-center mb-10">
+                    <h2 class="text-3xl font-bold text-slate-800">Como nosso cérebro processa o mundo?</h2>
+                    <p class="text-slate-500 mt-2">A Terapia Cognitivo-Comportamental (TCC) explica isso como 3 engrenagens conectadas.</p>
+                </div>
+
+                <!-- Interactive TCC Model Layout -->
+                <div class="flex flex-col lg:flex-row items-center gap-12">
+                    
+                    <!-- Diagram Area -->
+                    <div class="w-full lg:w-1/2 relative min-h-[400px] flex items-center justify-center">
+                        <div class="absolute inset-0 bg-slate-50 rounded-full opacity-50 scale-90"></div>
+                        
+                        <!-- Situation Context -->
+                        <div class="absolute top-0 text-center w-full">
+                            <span class="inline-block bg-slate-800 text-white px-4 py-2 rounded-full text-sm font-bold shadow-md">
+                                Situação: Apresentar trabalho na escola
+                            </span>
+                        </div>
+
+                        <!-- 3 Pillars (CSS Positioned) -->
+                        <div class="relative w-64 h-64 mt-10">
+                            <!-- Pensamento -->
+                            <div onclick="updateTccInfo('pensamento')" class="node-circle absolute -top-4 left-1/2 transform -translate-x-1/2 w-28 h-28 bg-blue-100 border-4 border-blue-400 text-blue-700 flex flex-col items-center justify-center text-center font-bold z-10 cursor-pointer">
+                                <span class="text-2xl mb-1">💭</span>
+                                <span class="text-sm">Pensamento</span>
+                            </div>
+                            <!-- Sentimento -->
+                            <div onclick="updateTccInfo('sentimento')" class="node-circle absolute bottom-0 -left-4 w-28 h-28 bg-rose-100 border-4 border-rose-400 text-rose-700 flex flex-col items-center justify-center text-center font-bold z-10 cursor-pointer">
+                                <span class="text-2xl mb-1">❤️</span>
+                                <span class="text-sm">Sentimento</span>
+                            </div>
+                            <!-- Comportamento -->
+                            <div onclick="updateTccInfo('comportamento')" class="node-circle absolute bottom-0 -right-4 w-28 h-28 bg-emerald-100 border-4 border-emerald-400 text-emerald-700 flex flex-col items-center justify-center text-center font-bold z-10 cursor-pointer">
+                                <span class="text-2xl mb-1">🏃‍♂️</span>
+                                <span class="text-sm text-[11px] leading-tight">Comportamento<br>(Ação)</span>
+                            </div>
+
+                            <!-- Connecting lines (simulated with rotated divs) -->
+                            <div class="absolute top-1/4 left-8 w-1 h-24 bg-gray-300 transform -rotate-[30deg] -z-10"></div>
+                            <div class="absolute top-1/4 right-8 w-1 h-24 bg-gray-300 transform rotate-[30deg] -z-10"></div>
+                            <div class="absolute bottom-10 left-1/4 w-24 h-1 bg-gray-300 z-0"></div>
+                        </div>
+                    </div>
+
+                    <!-- Info Area -->
+                    <div class="w-full lg:w-1/2 bg-slate-50 rounded-2xl p-8 border border-slate-200 min-h-[300px] flex flex-col justify-center">
+                        <h3 class="text-xl font-bold text-slate-700 mb-4 flex items-center gap-2">
+                            <span>🔍</span> Clique nas engrenagens ao lado!
+                        </h3>
+                        <p class="text-slate-600 mb-6 italic text-sm">A TCC mostra que uma coisa puxa a outra. O jeito que você pensa muda o que você sente e o que você faz.</p>
+                        
+                        <!-- Dynamic Content Box -->
+                        <div id="tcc-detail-box" class="bg-white p-6 rounded-xl border-l-4 border-slate-300 shadow-sm transition-all duration-300">
+                            <p class="text-slate-500 font-medium text-center py-4">
+                                Clique em "Pensamento", "Sentimento" ou "Comportamento" para ver como a mente reage ao apresentar o trabalho.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Ferramentas & Regulação Emocional (Chart included) -->
+        <section id="superpoderes" class="mb-20 scroll-mt-20">
+            <h2 class="text-3xl font-bold text-slate-800 text-center mb-10">Seus Novos Superpoderes</h2>
+            
+            <p class="text-center text-slate-600 max-w-3xl mx-auto mb-12 text-lg">
+                O objetivo da terapia é que você ganhe "superpoderes" de <strong>regulação emocional</strong>. Ou seja, saber lidar sozinho com a ansiedade, a raiva ou a tristeza quando elas aparecerem. Olha algumas ferramentas que vamos usar:
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+                <!-- Tool 1: Detetive -->
+                <div class="group h-80 perspective-1000 cursor-pointer">
+                    <div class="relative w-full h-full transition-transform duration-700 transform-style-3d group-hover:rotate-y-180">
+                        <!-- Frente -->
+                        <div class="absolute inset-0 backface-hidden bg-blue-50 border-2 border-blue-200 rounded-3xl p-8 flex flex-col items-center justify-center text-center">
+                            <div class="text-6xl mb-4">🕵️‍♂️</div>
+                            <h3 class="text-2xl font-bold text-blue-800 mb-2">Detetive de Pensamentos</h3>
+                            <p class="text-blue-600 font-semibold">Passe o mouse (ou clique) para virar</p>
+                        </div>
+                        <!-- Verso -->
+                        <div class="absolute inset-0 backface-hidden bg-blue-600 text-white rounded-3xl p-8 rotate-y-180 flex flex-col justify-center">
+                            <h3 class="text-xl font-bold mb-4 border-b border-blue-400 pb-2">Como funciona:</h3>
+                            <p class="mb-4 text-sm leading-relaxed">Às vezes nossa mente mente! Um "pensamento automático" diz: <em>"Vou errar tudo na prova"</em>.</p>
+                            <p class="text-sm font-semibold mb-2">O Detetive investiga:</p>
+                            <ul class="list-disc pl-5 text-sm space-y-1 text-blue-100">
+                                <li>Isso é 100% verdade?</li>
+                                <li>Quais as provas que eu tenho? (Eu estudei?)</li>
+                                <li>Tem outro jeito de pensar sobre isso?</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tool 2: Experimento de Coragem -->
+                <div class="bg-amber-50 border-2 border-amber-200 rounded-3xl p-8 flex flex-col justify-center">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="text-5xl">🧗</div>
+                        <h3 class="text-2xl font-bold text-amber-800">Experimentos de Coragem</h3>
+                    </div>
+                    <p class="text-amber-900 mb-6">
+                        Se a gente foge do que dá medo, o medo cresce. A regra aqui é enfrentar as coisas como num videogame: <strong>passando de fase aos poucos.</strong>
+                    </p>
+                    
+                    <!-- Interactive Step Progress -->
+                    <div class="space-y-3">
+                        <div class="text-sm font-bold text-amber-700 mb-1">Desafio: Perguntar algo para a professora</div>
+                        
+                        <div class="flex items-center gap-3 cursor-pointer group" onclick="toggleStep(this, 1)">
+                            <div class="w-8 h-8 rounded-full border-2 border-amber-400 flex items-center justify-center text-amber-600 font-bold bg-white transition-colors">1</div>
+                            <div class="flex-1 bg-white p-3 rounded-xl border border-amber-100 group-hover:bg-amber-100 transition-colors text-sm">Levantar a mão, mas baixar rápido.</div>
+                        </div>
+                        
+                        <div class="flex items-center gap-3 cursor-pointer group opacity-50" onclick="toggleStep(this, 2)">
+                            <div class="w-8 h-8 rounded-full border-2 border-amber-400 flex items-center justify-center text-amber-600 font-bold bg-white transition-colors">2</div>
+                            <div class="flex-1 bg-white p-3 rounded-xl border border-amber-100 group-hover:bg-amber-100 transition-colors text-sm">Fazer a pergunta lendo no caderno.</div>
+                        </div>
+                        
+                        <div class="flex items-center gap-3 cursor-pointer group opacity-50" onclick="toggleStep(this, 3)">
+                            <div class="w-8 h-8 rounded-full border-2 border-amber-400 flex items-center justify-center text-amber-600 font-bold bg-white transition-colors">3</div>
+                            <div class="flex-1 bg-white p-3 rounded-xl border border-amber-100 group-hover:bg-amber-100 transition-colors text-sm">Olhar para ela e fazer a pergunta.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dynamic Chart Section -->
+            <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-200">
+                <div class="text-center mb-8">
+                    <h3 class="text-2xl font-bold text-slate-800">Painel de Controle: O impacto do pensamento</h3>
+                    <p class="text-slate-500 mt-2 text-sm">
+                        Veja no gráfico abaixo como a ansiedade (linha vermelha) muda dependendo do que você escolhe pensar antes de uma prova.
+                    </p>
+                </div>
+                
+                <div class="flex flex-wrap justify-center gap-4 mb-6">
+                    <button onclick="updateChart('negativo')" class="bg-rose-100 hover:bg-rose-200 text-rose-800 font-semibold py-2 px-4 rounded-lg text-sm transition-colors border border-rose-200">
+                        😰 Pensamento: "Vou zerar a prova"
+                    </button>
+                    <button onclick="updateChart('neutro')" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold py-2 px-4 rounded-lg text-sm transition-colors border border-slate-200">
+                        🔄 Início / Padrão
+                    </button>
+                    <button onclick="updateChart('detetive')" class="bg-teal-100 hover:bg-teal-200 text-teal-800 font-semibold py-2 px-4 rounded-lg text-sm transition-colors border border-teal-200">
+                        🕵️ Pensamento Detetive: "Eu estudei um pouco"
+                    </button>
+                </div>
+
+                <!-- CRITICAL: Properly constrained chart container -->
+                <div class="chart-container">
+                    <canvas id="emotionChart"></canvas>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Section 5: Atividades Práticas sugeridas para a Sessão -->
+        <section class="mb-10">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                <span>📋</span> Missões para nossa Sessão
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-2xl border-2 border-dashed border-gray-300">
+                    <h4 class="font-bold text-teal-700 mb-2">1. Termômetro das Emoções</h4>
+                    <p class="text-sm text-slate-600">Vamos desenhar um termômetro de 0 a 10. Juntos, vamos mapear que nota a sua ansiedade ganha em diferentes situações do seu dia a dia.</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border-2 border-dashed border-gray-300">
+                    <h4 class="font-bold text-blue-700 mb-2">2. Tribunal da Mente</h4>
+                    <p class="text-sm text-slate-600">Você será o Juiz e eu o Advogado. Vamos pegar um 'pensamento automático' seu que te chateia e levá-lo a julgamento para ver se ele tem provas de verdade!</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border-2 border-dashed border-gray-300">
+                    <h4 class="font-bold text-amber-700 mb-2">3. A Escada do Desafio</h4>
+                    <p class="text-sm text-slate-600">Vamos escolher uma coisa que você evita fazer por vergonha ou medo, e desenhar uma escada. No degrau 1, o passo mais fácil. No topo, o grande desafio.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-800 text-center py-8">
+        <p class="text-slate-400 text-sm">Manual criado para auxiliar no processo terapêutico infantojuvenil.</p>
+    </footer>
+
+    <!-- Application Logic (Vanilla JS & Chart.js) -->
+    <script>
+        // 1. GPS Metaphor Interaction
+        const btnGps = document.getElementById('btn-gps');
+        const gpsStatus = document.getElementById('gps-status');
+        const mapVisual = document.getElementById('map-visual');
+        const gpsMarker = document.getElementById('gps-marker');
+        const gpsText = document.getElementById('gps-text');
+        let isGpsOn = false;
+
+        btnGps.addEventListener('click', () => {
+            isGpsOn = !isGpsOn;
+            if(isGpsOn) {
+                gpsStatus.classList.replace('bg-red-400', 'bg-teal-400');
+                mapVisual.classList.replace('bg-slate-200', 'bg-teal-900');
+                gpsMarker.classList.add('gps-pulse');
+                gpsMarker.classList.replace('opacity-50', 'opacity-100');
+                gpsText.classList.replace('opacity-0', 'opacity-100');
+                btnGps.querySelector('span').innerText = "Desligar GPS";
+            } else {
+                gpsStatus.classList.replace('bg-teal-400', 'bg-red-400');
+                mapVisual.classList.replace('bg-teal-900', 'bg-slate-200');
+                gpsMarker.classList.remove('gps-pulse');
+                gpsMarker.classList.replace('opacity-100', 'opacity-50');
+                gpsText.classList.replace('opacity-100', 'opacity-0');
+                btnGps.querySelector('span').innerText = "Ligar o GPS da Mente";
+            }
+        });
+
+        // 2. CBT Interactive Triangle Logic
+        const tccData = {
+            pensamento: {
+                color: 'border-blue-400',
+                title: 'O Pensamento Automático',
+                icon: '💭',
+                text: 'Aquela voz rápida na cabeça que julga a situação antes mesmo de você perceber. <br><br><strong>Exemplo na apresentação:</strong> <em>"Todo mundo vai perceber que estou tremendo. Eu vou esquecer o que falar e vão rir de mim."</em>'
+            },
+            sentimento: {
+                color: 'border-rose-400',
+                title: 'O Sentimento / Emoção',
+                icon: '❤️',
+                text: 'Como seu corpo e seu humor reagem ao que você acabou de pensar. <br><br><strong>Exemplo na apresentação:</strong> <em>Frio na barriga, coração acelerado, suor nas mãos, vontade de chorar e muita ansiedade.</em>'
+            },
+            comportamento: {
+                color: 'border-emerald-400',
+                title: 'O Comportamento',
+                icon: '🏃‍♂️',
+                text: 'O que você faz (ou deixa de fazer) movido por aquele sentimento. <br><br><strong>Exemplo na apresentação:</strong> <em>Falar super baixo, olhar só para o chão, ou fingir dor de barriga no dia para não ir à escola.</em>'
+            }
+        };
+
+        function updateTccInfo(type) {
+            const box = document.getElementById('tcc-detail-box');
+            const data = tccData[type];
+            
+            // Visual feedback on nodes
+            document.querySelectorAll('.node-circle').forEach(el => {
+                el.classList.remove('active', 'ring-4', 'ring-offset-2', 'ring-gray-300');
+            });
+            event.currentTarget.classList.add('active', 'ring-4', 'ring-offset-2', 'ring-gray-300');
+
+            // Update Box content
+            box.className = `bg-white p-6 rounded-xl border-l-4 shadow-sm transition-all duration-300 ${data.color}`;
+            box.innerHTML = `
+                <div class="flex items-center gap-3 mb-3 border-b pb-2">
+                    <span class="text-3xl">${data.icon}</span>
+                    <h4 class="font-bold text-lg text-slate-800">${data.title}</h4>
+                </div>
+                <p class="text-slate-600 text-sm leading-relaxed">${data.text}</p>
+            `;
+        }
+
+        // 3. Courage Steps Logic
+        function toggleStep(element, step) {
+            const check = element.querySelector('div:first-child');
+            const bg = element.querySelector('div:last-child');
+            
+            element.classList.toggle('opacity-50');
+            
+            if(!element.classList.contains('opacity-50')) {
+                check.classList.replace('bg-white', 'bg-amber-500');
+                check.classList.replace('text-amber-600', 'text-white');
+                bg.classList.add('bg-amber-100');
+            } else {
+                check.classList.replace('bg-amber-500', 'bg-white');
+                check.classList.replace('text-white', 'text-amber-600');
+                bg.classList.remove('bg-amber-100');
+            }
+        }
+
+        // 4. Chart.js Implementation (Emotion Dashboard)
+        const ctx = document.getElementById('emotionChart').getContext('2d');
+        
+        // Base datasets
+        const dataSets = {
+            neutro: [30, 40, 50, 60, 55, 60, 50],
+            negativo: [40, 60, 80, 95, 90, 95, 100],
+            detetive: [40, 50, 45, 35, 30, 20, 15]
+        };
+
+        const emotionChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Faltam 3 dias', '2 dias', 'Véspera', 'Acordando', 'Indo p/ Escola', 'Na sala', 'Hora H'],
+                datasets: [{
+                    label: 'Nível de Ansiedade',
+                    data: dataSets.neutro,
+                    borderColor: '#3b82f6', // blue
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                    borderWidth: 3,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#3b82f6',
+                    pointRadius: 5,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false, // Critical for container height control
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) { label += ': '; }
+                                if (context.parsed.y !== null) { label += context.parsed.y + '%'; }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        title: { display: true, text: 'Nível (0 a 100)' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                },
+                animation: {
+                    duration: 800,
+                    easing: 'easeOutQuart'
+                }
+            }
+        });
+
+        // Function to update chart dynamically based on thought choice
+        function updateChart(type) {
+            emotionChart.data.datasets[0].data = dataSets[type];
+            
+            if(type === 'negativo') {
+                emotionChart.data.datasets[0].borderColor = '#ef4444'; // rose
+                emotionChart.data.datasets[0].backgroundColor = 'rgba(239, 68, 68, 0.2)';
+                emotionChart.data.datasets[0].pointBorderColor = '#ef4444';
+            } else if (type === 'detetive') {
+                emotionChart.data.datasets[0].borderColor = '#14b8a6'; // teal
+                emotionChart.data.datasets[0].backgroundColor = 'rgba(20, 184, 166, 0.2)';
+                emotionChart.data.datasets[0].pointBorderColor = '#14b8a6';
+            } else {
+                emotionChart.data.datasets[0].borderColor = '#3b82f6'; // blue
+                emotionChart.data.datasets[0].backgroundColor = 'rgba(59, 130, 246, 0.2)';
+                emotionChart.data.datasets[0].pointBorderColor = '#3b82f6';
+            }
+            
+            emotionChart.update();
+        }
+    </script>
+</body>
+</html>
